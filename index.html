@@ -1,0 +1,2791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>资产记录</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #f5f5f7;
+    --card: #ffffff;
+    --text: #171717;
+    --secondary: #777;
+    --border: #e8e8e8;
+    --primary: #111;
+    --danger: #e53935;
+    --green: #159957;
+    --shadow: 0 2px 12px rgba(0,0,0,.05);
+}
+
+body {
+    margin: 0;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "SF Pro Text",
+        "Helvetica Neue",
+        Arial,
+        sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.app {
+    max-width: 720px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding-bottom: 90px;
+}
+
+/* =========================
+   Header
+========================= */
+
+.header {
+    padding: 28px 20px 18px;
+}
+
+.header-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+/* =========================
+   Summary
+========================= */
+
+.summary {
+    margin: 0 16px 18px;
+    padding: 24px;
+    background: #111;
+    color: white;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+}
+
+.summary-label {
+    font-size: 14px;
+    opacity: .65;
+    margin-bottom: 8px;
+}
+
+.net-worth {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 22px;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.summary-item {
+    background: rgba(255,255,255,.08);
+    padding: 13px;
+    border-radius: 12px;
+}
+
+.summary-item-label {
+    font-size: 12px;
+    opacity: .65;
+    margin-bottom: 5px;
+}
+
+.summary-item-value {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.positive {
+    color: var(--green);
+}
+
+.negative {
+    color: var(--danger);
+}
+
+/* =========================
+   Section
+========================= */
+
+.section {
+    padding: 0 16px;
+    margin-bottom: 20px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.add-button {
+    border: 0;
+    background: #111;
+    color: white;
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 14px;
+}
+
+/* =========================
+   Asset cards
+========================= */
+
+.asset-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 17px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    cursor: pointer;
+}
+
+.asset-left {
+    min-width: 0;
+}
+
+.asset-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.asset-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: #f1f1f1;
+    color: #666;
+    font-size: 11px;
+}
+
+.asset-note {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.asset-value {
+    font-size: 17px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* =========================
+   Empty
+========================= */
+
+.empty {
+    text-align: center;
+    padding: 45px 20px;
+    color: #999;
+}
+
+/* =========================
+   Bottom navigation
+========================= */
+
+.bottom-nav {
+    position: fixed;
+    z-index: 100;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(720px, 100%);
+    height: 70px;
+    background: rgba(255,255,255,.94);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.nav-item {
+    border: 0;
+    background: transparent;
+    color: #999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 11px;
+}
+
+.nav-icon {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.nav-item.active {
+    color: #111;
+    font-weight: 600;
+}
+
+/* =========================
+   Pages
+========================= */
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+/* =========================
+   Modal
+========================= */
+
+.modal {
+    position: fixed;
+    z-index: 200;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    width: min(720px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    background: white;
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px 30px;
+    animation: slideUp .2s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-title {
+    font-size: 21px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    display: block;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 7px;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    background: #f8f8f8;
+    border-radius: 12px;
+    padding: 13px;
+    outline: none;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    border-color: #999;
+    background: white;
+}
+
+.form-textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.btn {
+    flex: 1;
+    border: 0;
+    border-radius: 12px;
+    padding: 13px;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: #111;
+    color: white;
+}
+
+.btn-secondary {
+    background: #eee;
+    color: #333;
+}
+
+.btn-danger {
+    background: #fff0f0;
+    color: var(--danger);
+}
+
+/* =========================
+   History
+========================= */
+
+.history-list {
+    margin-top: 10px;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.history-date {
+    font-size: 13px;
+    color: #777;
+}
+
+.history-value {
+    font-weight: 600;
+}
+
+/* =========================
+   Charts
+========================= */
+
+.chart-card {
+    background: white;
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+}
+
+.chart-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+canvas {
+    width: 100% !important;
+    height: auto !important;
+}
+
+.chart-empty {
+    color: #999;
+    text-align: center;
+    padding: 30px 0;
+}
+
+/* =========================
+   Ranking
+========================= */
+
+.rank-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.rank-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #f1f1f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.rank-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.rank-name {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.rank-category {
+    color: #999;
+    font-size: 11px;
+    margin-top: 3px;
+}
+
+.rank-value {
+    text-align: right;
+}
+
+.rank-money {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.rank-percent {
+    font-size: 11px;
+    color: #999;
+    margin-top: 3px;
+}
+
+/* =========================
+   Data page
+========================= */
+
+.data-card {
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+    margin: 0 16px 14px;
+    box-shadow: var(--shadow);
+}
+
+.data-card h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
+}
+
+.data-card p {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: #888;
+    line-height: 1.6;
+}
+
+.data-button {
+    width: 100%;
+    border: 0;
+    background: #111;
+    color: white;
+    border-radius: 12px;
+    padding: 13px;
+    margin-top: 8px;
+    font-weight: 600;
+}
+
+.data-button.secondary {
+    background: #eee;
+    color: #222;
+}
+
+input[type=file] {
+    display: none;
+}
+
+/* =========================
+   Toast
+========================= */
+
+.toast {
+    position: fixed;
+    z-index: 999;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(0,0,0,.85);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: .25s;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* =========================
+   Responsive
+========================= */
+
+@media (min-width: 721px) {
+    .bottom-nav {
+        border-radius: 20px 20px 0 0;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =====================
+         Asset Page
+    ====================== -->
+
+    <div id="assetPage" class="page active">
+
+        <div class="header">
+            <div class="header-title">资产</div>
+        </div>
+
+        <div class="summary">
+
+            <div class="summary-label">
+                净资产
+            </div>
+
+            <div id="netWorth" class="net-worth">
+                ¥0.00
+            </div>
+
+            <div class="summary-grid">
+
+                <div class="summary-item">
+                    <div class="summary-item-label">
+                        总资产
+                    </div>
+                    <div id="totalAssets" class="summary-item-value">
+                        ¥0.00
+                    </div>
+                </div>
+
+                <div class="summary-item">
+                    <div class="summary-item-label">
+                        总负债
+                    </div>
+                    <div id="totalLiabilities" class="summary-item-value">
+                        ¥0.00
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="section">
+
+            <div class="section-header">
+                <div class="section-title">
+                    我的资产
+                </div>
+
+                <button class="add-button" onclick="openAddAsset()">
+                    ＋ 新增
+                </button>
+            </div>
+
+            <div id="assetList"></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================
+         Chart Page
+    ====================== -->
+
+    <div id="chartPage" class="page">
+
+        <div class="header">
+            <div class="header-title">图表</div>
+        </div>
+
+        <div class="section">
+
+            <div class="chart-card">
+
+                <div class="chart-title">
+                    月度净资产
+                </div>
+
+                <canvas id="netWorthChart"></canvas>
+
+            </div>
+
+
+            <div class="chart-card">
+
+                <div class="chart-title">
+                    资产分类占比
+                </div>
+
+                <canvas id="categoryChart"></canvas>
+
+            </div>
+
+
+            <div class="chart-card">
+
+                <div class="chart-title">
+                    资产排行榜
+                </div>
+
+                <div id="rankingList"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================
+         Data Page
+    ====================== -->
+
+    <div id="dataPage" class="page">
+
+        <div class="header">
+            <div class="header-title">数据</div>
+        </div>
+
+        <div class="data-card">
+
+            <h3>导出数据</h3>
+
+            <p>
+                将当前所有资产、历史余额和操作记录导出为 JSON 文件。
+            </p>
+
+            <button
+                class="data-button"
+                onclick="exportData()">
+                导出 JSON
+            </button>
+
+        </div>
+
+
+        <div class="data-card">
+
+            <h3>导入数据</h3>
+
+            <p>
+                从之前导出的 JSON 文件恢复资产数据。
+                导入后会覆盖当前数据。
+            </p>
+
+            <label class="data-button secondary">
+                选择 JSON 文件
+                <input
+                    type="file"
+                    id="importFile"
+                    accept=".json,application/json"
+                    onchange="importData(event)">
+            </label>
+
+        </div>
+
+
+        <div class="data-card">
+
+            <h3>数据统计</h3>
+
+            <p id="dataStats"></p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================
+     Bottom Navigation
+====================== -->
+
+<nav class="bottom-nav">
+
+    <button
+        class="nav-item active"
+        onclick="switchPage('assetPage', this)">
+
+        <div class="nav-icon">¥</div>
+        <div>资产</div>
+
+    </button>
+
+    <button
+        class="nav-item"
+        onclick="switchPage('chartPage', this)">
+
+        <div class="nav-icon">◒</div>
+        <div>图表</div>
+
+    </button>
+
+    <button
+        class="nav-item"
+        onclick="switchPage('dataPage', this)">
+
+        <div class="nav-icon">⇩</div>
+        <div>数据</div>
+
+    </button>
+
+</nav>
+
+
+<!-- =====================
+     Asset Modal
+====================== -->
+
+<div id="assetModal" class="modal">
+
+    <div class="modal-content">
+
+        <div id="modalTitle" class="modal-title">
+            新增资产
+        </div>
+
+        <input type="hidden" id="editAssetId">
+
+        <div class="form-group">
+
+            <label class="form-label">
+                分类
+            </label>
+
+            <select id="assetCategory" class="form-select">
+
+                <option value="现金">
+                    现金
+                </option>
+
+                <option value="借记卡">
+                    借记卡
+                </option>
+
+                <option value="虚拟账户">
+                    虚拟账户
+                </option>
+
+                <option value="投资账户">
+                    投资账户
+                </option>
+
+                <option value="负债">
+                    负债
+                </option>
+
+                <option value="债券">
+                    债券
+                </option>
+
+                <option value="自定义资产">
+                    自定义资产
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label class="form-label">
+                名称
+            </label>
+
+            <input
+                id="assetName"
+                class="form-input"
+                placeholder="例如：招商银行、QQQ、现金"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label class="form-label">
+                备注
+            </label>
+
+            <textarea
+                id="assetNote"
+                class="form-textarea"
+                placeholder="可以记录账户用途、投资策略等">
+            </textarea>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label class="form-label">
+                当前余额
+            </label>
+
+            <input
+                id="assetBalance"
+                class="form-input"
+                type="number"
+                step="0.01"
+                placeholder="0"
+            >
+
+        </div>
+
+
+        <div class="form-buttons">
+
+            <button
+                class="btn btn-secondary"
+                onclick="closeModal()">
+                取消
+            </button>
+
+            <button
+                class="btn btn-primary"
+                onclick="saveAsset()">
+                保存
+            </button>
+
+        </div>
+
+
+        <div
+            id="deleteArea"
+            style="display:none;margin-top:10px">
+
+            <button
+                class="btn btn-danger"
+                style="width:100%"
+                onclick="deleteAsset()">
+                删除资产
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================
+     History Modal
+====================== -->
+
+<div id="historyModal" class="modal">
+
+    <div class="modal-content">
+
+        <div id="historyTitle" class="modal-title">
+            资产历史
+        </div>
+
+        <div id="historyList" class="history-list"></div>
+
+        <div class="form-buttons">
+
+            <button
+                class="btn btn-secondary"
+                onclick="closeHistory()">
+                关闭
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="toast" class="toast"></div>
+
+
+<script>
+
+/* =====================================================
+   Storage
+===================================================== */
+
+const STORAGE_KEY = "asset_tracker_data_v1";
+
+let data = loadData();
+
+let netWorthChartInstance = null;
+let categoryChartInstance = null;
+
+
+/* =====================================================
+   Initial Data Structure
+===================================================== */
+
+function createEmptyData() {
+
+    return {
+        assets: [],
+        operations: [],
+        netWorthHistory: []
+    };
+
+}
+
+
+/* =====================================================
+   Load / Save
+===================================================== */
+
+function loadData() {
+
+    try {
+
+        const raw = localStorage.getItem(STORAGE_KEY);
+
+        if (!raw) {
+            return createEmptyData();
+        }
+
+        const parsed = JSON.parse(raw);
+
+        return {
+            assets: parsed.assets || [],
+            operations: parsed.operations || [],
+            netWorthHistory: parsed.netWorthHistory || []
+        };
+
+    } catch (error) {
+
+        console.error(error);
+
+        return createEmptyData();
+
+    }
+
+}
+
+
+function saveData() {
+
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(data)
+    );
+
+}
+
+
+/* =====================================================
+   Utility
+===================================================== */
+
+function generateId() {
+
+    return Date.now().toString(36) +
+        Math.random().toString(36).substring(2);
+
+}
+
+
+function nowISO() {
+
+    return new Date().toISOString();
+
+}
+
+
+function formatMoney(value) {
+
+    return Number(value || 0).toLocaleString(
+        "zh-CN",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+
+}
+
+
+function formatDate(date) {
+
+    const d = new Date(date);
+
+    return d.getFullYear() +
+        "-" +
+        String(d.getMonth() + 1).padStart(2, "0") +
+        "-" +
+        String(d.getDate()).padStart(2, "0");
+
+}
+
+
+function formatDateTime(date) {
+
+    const d = new Date(date);
+
+    return d.getFullYear() +
+        "-" +
+        String(d.getMonth() + 1).padStart(2, "0") +
+        "-" +
+        String(d.getDate()).padStart(2, "0") +
+        " " +
+        String(d.getHours()).padStart(2, "0") +
+        ":" +
+        String(d.getMinutes()).padStart(2, "0");
+
+}
+
+
+/* =====================================================
+   Toast
+===================================================== */
+
+function showToast(message) {
+
+    const toast = document.getElementById("toast");
+
+    toast.textContent = message;
+
+    toast.classList.add("show");
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 1800);
+
+}
+
+
+/* =====================================================
+   Page Navigation
+===================================================== */
+
+function switchPage(pageId, button) {
+
+    document.querySelectorAll(".page")
+        .forEach(page => {
+            page.classList.remove("active");
+        });
+
+    document.getElementById(pageId)
+        .classList.add("active");
+
+    document.querySelectorAll(".nav-item")
+        .forEach(item => {
+            item.classList.remove("active");
+        });
+
+    button.classList.add("active");
+
+    if (pageId === "chartPage") {
+        renderCharts();
+    }
+
+    if (pageId === "dataPage") {
+        renderDataStats();
+    }
+
+}
+
+
+/* =====================================================
+   Calculate Summary
+===================================================== */
+
+function calculateSummary() {
+
+    let totalAssets = 0;
+    let totalLiabilities = 0;
+
+    data.assets.forEach(asset => {
+
+        const balance = Number(asset.balance) || 0;
+
+        if (asset.category === "负债") {
+            totalLiabilities += Math.abs(balance);
+        } else {
+            totalAssets += balance;
+        }
+
+    });
+
+    return {
+        totalAssets,
+        totalLiabilities,
+        netWorth: totalAssets - totalLiabilities
+    };
+
+}
+
+
+/* =====================================================
+   Render Assets
+===================================================== */
+
+function renderAssets() {
+
+    const list = document.getElementById("assetList");
+
+    const summary = calculateSummary();
+
+    document.getElementById("netWorth").textContent =
+        "¥" + formatMoney(summary.netWorth);
+
+    document.getElementById("totalAssets").textContent =
+        "¥" + formatMoney(summary.totalAssets);
+
+    document.getElementById("totalLiabilities").textContent =
+        "¥" + formatMoney(summary.totalLiabilities);
+
+
+    if (data.assets.length === 0) {
+
+        list.innerHTML = `
+            <div class="empty">
+                还没有资产<br>
+                点击右上角「＋ 新增」开始记录
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    list.innerHTML = data.assets
+        .map(asset => {
+
+            const value =
+                Number(asset.balance) || 0;
+
+            return `
+                <div
+                    class="asset-card"
+                    onclick="openAsset('${asset.id}')">
+
+                    <div class="asset-left">
+
+                        <div class="asset-name">
+                            ${escapeHTML(asset.name)}
+                        </div>
+
+                        <div class="asset-meta">
+
+                            <span class="tag">
+                                ${escapeHTML(asset.category)}
+                            </span>
+
+                        </div>
+
+                        ${
+                            asset.note
+                            ?
+                            `<div class="asset-note">
+                                ${escapeHTML(asset.note)}
+                            </div>`
+                            :
+                            ""
+                        }
+
+                    </div>
+
+                    <div class="asset-value ${
+                        asset.category === "负债"
+                        ? "negative"
+                        : ""
+                    }">
+
+                        ¥${formatMoney(value)}
+
+                    </div>
+
+                </div>
+            `;
+
+        })
+        .join("");
+
+}
+
+
+/* =====================================================
+   Escape HTML
+===================================================== */
+
+function escapeHTML(str) {
+
+    return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =====================================================
+   Add Asset
+===================================================== */
+
+function openAddAsset() {
+
+    document.getElementById("modalTitle")
+        .textContent = "新增资产";
+
+    document.getElementById("editAssetId")
+        .value = "";
+
+    document.getElementById("assetCategory")
+        .value = "现金";
+
+    document.getElementById("assetName")
+        .value = "";
+
+    document.getElementById("assetNote")
+        .value = "";
+
+    document.getElementById("assetBalance")
+        .value = "";
+
+    document.getElementById("deleteArea")
+        .style.display = "none";
+
+    document.getElementById("assetModal")
+        .classList.add("show");
+
+}
+
+
+/* =====================================================
+   Edit Asset
+===================================================== */
+
+function openAsset(id) {
+
+    const asset =
+        data.assets.find(item => item.id === id);
+
+    if (!asset) return;
+
+    document.getElementById("modalTitle")
+        .textContent = "编辑资产";
+
+    document.getElementById("editAssetId")
+        .value = asset.id;
+
+    document.getElementById("assetCategory")
+        .value = asset.category;
+
+    document.getElementById("assetName")
+        .value = asset.name;
+
+    document.getElementById("assetNote")
+        .value = asset.note || "";
+
+    document.getElementById("assetBalance")
+        .value = asset.balance;
+
+    document.getElementById("deleteArea")
+        .style.display = "block";
+
+    document.getElementById("assetModal")
+        .classList.add("show");
+
+}
+
+
+/* =====================================================
+   Save Asset
+===================================================== */
+
+function saveAsset() {
+
+    const id =
+        document.getElementById("editAssetId").value;
+
+    const category =
+        document.getElementById("assetCategory").value;
+
+    const name =
+        document.getElementById("assetName").value.trim();
+
+    const note =
+        document.getElementById("assetNote").value.trim();
+
+    const balance =
+        Number(document.getElementById("assetBalance").value);
+
+
+    if (!name) {
+
+        showToast("请输入资产名称");
+
+        return;
+
+    }
+
+
+    if (!Number.isFinite(balance)) {
+
+        showToast("请输入有效余额");
+
+        return;
+
+    }
+
+
+    const timestamp = nowISO();
+
+
+    /* -----------------------------
+       Existing asset
+    ----------------------------- */
+
+    if (id) {
+
+        const asset =
+            data.assets.find(item => item.id === id);
+
+        if (!asset) return;
+
+        const oldBalance =
+            Number(asset.balance) || 0;
+
+
+        asset.category = category;
+        asset.name = name;
+        asset.note = note;
+
+
+        /*
+         * 只有余额发生变化时，
+         * 才生成新的余额历史记录
+         */
+
+        if (oldBalance !== balance) {
+
+            asset.balance = balance;
+
+            asset.history.push({
+                date: timestamp,
+                balance: balance
+            });
+
+        } else {
+
+            asset.balance = balance;
+
+        }
+
+
+        data.operations.push({
+
+            id: generateId(),
+
+            type: oldBalance !== balance
+                ? "update_balance"
+                : "update_asset",
+
+            assetId: asset.id,
+
+            date: timestamp,
+
+            details: {
+                oldBalance,
+                newBalance: balance,
+                category,
+                name,
+                note
+            }
+
+        });
+
+
+        showToast("资产已更新");
+
+
+    }
+
+    /* -----------------------------
+       New asset
+    ----------------------------- */
+
+    else {
+
+        const asset = {
+
+            id: generateId(),
+
+            category,
+
+            name,
+
+            note,
+
+            balance,
+
+            createdAt: timestamp,
+
+            updatedAt: timestamp,
+
+            history: [
+
+                {
+                    date: timestamp,
+                    balance
+                }
+
+            ]
+
+        };
+
+
+        data.assets.push(asset);
+
+
+        data.operations.push({
+
+            id: generateId(),
+
+            type: "create_asset",
+
+            assetId: asset.id,
+
+            date: timestamp,
+
+            details: {
+                category,
+                name,
+                balance
+            }
+
+        });
+
+
+        showToast("资产已添加");
+
+    }
+
+
+    recordNetWorth();
+
+    cleanupOldHistory();
+
+    saveData();
+
+    closeModal();
+
+    renderAssets();
+
+}
+
+
+/* =====================================================
+   Delete Asset
+===================================================== */
+
+function deleteAsset() {
+
+    const id =
+        document.getElementById("editAssetId").value;
+
+    if (!id) return;
+
+
+    const asset =
+        data.assets.find(item => item.id === id);
+
+    if (!asset) return;
+
+
+    const confirmed =
+        confirm(
+            `确定删除「${asset.name}」吗？\n\n历史记录也会从当前资产中删除。`
+        );
+
+    if (!confirmed) return;
+
+
+    data.assets =
+        data.assets.filter(item => item.id !== id);
+
+
+    data.operations.push({
+
+        id: generateId(),
+
+        type: "delete_asset",
+
+        assetId: id,
+
+        date: nowISO(),
+
+        details: {
+            name: asset.name,
+            category: asset.category,
+            balance: asset.balance
+        }
+
+    });
+
+
+    recordNetWorth();
+
+    saveData();
+
+    closeModal();
+
+    renderAssets();
+
+    showToast("资产已删除");
+
+}
+
+
+/* =====================================================
+   Close Modal
+===================================================== */
+
+function closeModal() {
+
+    document.getElementById("assetModal")
+        .classList.remove("show");
+
+}
+
+
+/* =====================================================
+   History
+===================================================== */
+
+function openHistory(id) {
+
+    const asset =
+        data.assets.find(item => item.id === id);
+
+    if (!asset) return;
+
+
+    document.getElementById("historyTitle")
+        .textContent =
+        asset.name + " · 历史记录";
+
+
+    const history =
+        [...asset.history].reverse();
+
+
+    document.getElementById("historyList")
+        .innerHTML =
+        history.map(item => {
+
+            return `
+                <div class="history-item">
+
+                    <div class="history-date">
+                        ${formatDateTime(item.date)}
+                    </div>
+
+                    <div class="history-value">
+                        ¥${formatMoney(item.balance)}
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
+
+
+    document.getElementById("historyModal")
+        .classList.add("show");
+
+}
+
+
+function closeHistory() {
+
+    document.getElementById("historyModal")
+        .classList.remove("show");
+
+}
+
+
+/* =====================================================
+   Record Net Worth
+===================================================== */
+
+function recordNetWorth() {
+
+    const summary =
+        calculateSummary();
+
+    const timestamp = nowISO();
+
+
+    /*
+     * 同一天如果重复修改，
+     * 使用当天最新净资产。
+     */
+
+    const today =
+        formatDate(timestamp);
+
+
+    const existing =
+        data.netWorthHistory.find(
+            item => item.date === today
+        );
+
+
+    if (existing) {
+
+        existing.netWorth =
+            summary.netWorth;
+
+        existing.updatedAt =
+            timestamp;
+
+    } else {
+
+        data.netWorthHistory.push({
+
+            date: today,
+
+            netWorth:
+                summary.netWorth,
+
+            updatedAt:
+                timestamp
+
+        });
+
+    }
+
+}
+
+
+/* =====================================================
+   Clean One-Year History
+===================================================== */
+
+function cleanupOldHistory() {
+
+    const cutoff =
+        new Date();
+
+    cutoff.setFullYear(
+        cutoff.getFullYear() - 1
+    );
+
+
+    data.assets.forEach(asset => {
+
+        asset.history =
+            asset.history.filter(item => {
+
+                return new Date(item.date) >= cutoff;
+
+            });
+
+    });
+
+
+    data.netWorthHistory =
+        data.netWorthHistory.filter(item => {
+
+            return new Date(item.date) >= cutoff;
+
+        });
+
+
+    /*
+     * 操作日志也最多保留一年
+     */
+
+    data.operations =
+        data.operations.filter(item => {
+
+            return new Date(item.date) >= cutoff;
+
+        });
+
+}
+
+
+/* =====================================================
+   Monthly Net Worth
+===================================================== */
+
+function getMonthlyNetWorth() {
+
+    const monthly = {};
+
+
+    data.netWorthHistory.forEach(item => {
+
+        const month =
+            item.date.substring(0, 7);
+
+        monthly[month] =
+            item.netWorth;
+
+    });
+
+
+    return Object.entries(monthly)
+        .sort((a, b) =>
+            a[0].localeCompare(b[0])
+        );
+
+}
+
+
+/* =====================================================
+   Charts
+===================================================== */
+
+function renderCharts() {
+
+    renderNetWorthChart();
+
+    renderCategoryChart();
+
+    renderRanking();
+
+}
+
+
+/* =====================================================
+   Net Worth Chart
+===================================================== */
+
+function renderNetWorthChart() {
+
+    const canvas =
+        document.getElementById("netWorthChart");
+
+    const ctx =
+        canvas.getContext("2d");
+
+
+    const monthly =
+        getMonthlyNetWorth();
+
+
+    if (netWorthChartInstance) {
+
+        netWorthChartInstance
+            .destroy();
+
+    }
+
+
+    if (monthly.length === 0) {
+
+        canvas.parentElement.innerHTML += `
+            <div class="chart-empty">
+                暂无足够历史数据
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    netWorthChartInstance =
+        new SimpleLineChart(
+            ctx,
+            monthly.map(item => item[0]),
+            monthly.map(item => item[1])
+        );
+
+}
+
+
+/* =====================================================
+   Category Chart
+===================================================== */
+
+function renderCategoryChart() {
+
+    const canvas =
+        document.getElementById("categoryChart");
+
+    const ctx =
+        canvas.getContext("2d");
+
+
+    const categories = {};
+
+
+    data.assets.forEach(asset => {
+
+        if (asset.category === "负债") {
+            return;
+        }
+
+        const value =
+            Number(asset.balance) || 0;
+
+        categories[asset.category] =
+            (categories[asset.category] || 0)
+            + value;
+
+    });
+
+
+    const entries =
+        Object.entries(categories)
+            .filter(item => item[1] > 0);
+
+
+    if (categoryChartInstance) {
+
+        categoryChartInstance.destroy();
+
+    }
+
+
+    if (entries.length === 0) {
+
+        canvas.parentElement.innerHTML += `
+            <div class="chart-empty">
+                暂无资产数据
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    categoryChartInstance =
+        new SimplePieChart(
+            ctx,
+            entries.map(item => item[0]),
+            entries.map(item => item[1])
+        );
+
+}
+
+
+/* =====================================================
+   Ranking
+===================================================== */
+
+function renderRanking() {
+
+    const container =
+        document.getElementById("rankingList");
+
+
+    const summary =
+        calculateSummary();
+
+
+    const total =
+        summary.totalAssets;
+
+
+    const assets =
+        data.assets
+
+            .filter(asset =>
+                asset.category !== "负债"
+            )
+
+            .map(asset => {
+
+                const value =
+                    Number(asset.balance) || 0;
+
+                return {
+
+                    ...asset,
+
+                    value,
+
+                    percentage:
+                        total > 0
+                        ? value / total * 100
+                        : 0
+
+                };
+
+            })
+
+            .sort((a, b) =>
+                b.value - a.value
+            );
+
+
+    if (assets.length === 0) {
+
+        container.innerHTML =
+            `<div class="chart-empty">
+                暂无资产数据
+            </div>`;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        assets.map((asset, index) => {
+
+            return `
+
+                <div class="rank-item">
+
+                    <div class="rank-number">
+                        ${index + 1}
+                    </div>
+
+                    <div class="rank-main">
+
+                        <div class="rank-name">
+                            ${escapeHTML(asset.name)}
+                        </div>
+
+                        <div class="rank-category">
+                            ${escapeHTML(asset.category)}
+                        </div>
+
+                    </div>
+
+                    <div class="rank-value">
+
+                        <div class="rank-money">
+                            ¥${formatMoney(asset.value)}
+                        </div>
+
+                        <div class="rank-percent">
+                            ${asset.percentage.toFixed(1)}%
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        })
+        .join("");
+
+}
+
+
+/* =====================================================
+   Simple Line Chart
+   No external library required
+===================================================== */
+
+class SimpleLineChart {
+
+    constructor(ctx, labels, values) {
+
+        this.ctx = ctx;
+        this.labels = labels;
+        this.values = values;
+
+        this.draw();
+
+    }
+
+
+    draw() {
+
+        const canvas =
+            this.ctx.canvas;
+
+        const dpr =
+            window.devicePixelRatio || 1;
+
+        const width =
+            canvas.parentElement.clientWidth - 36;
+
+        const height = 240;
+
+
+        canvas.width =
+            width * dpr;
+
+        canvas.height =
+            height * dpr;
+
+        canvas.style.width =
+            width + "px";
+
+        canvas.style.height =
+            height + "px";
+
+
+        const ctx = this.ctx;
+
+        ctx.scale(dpr, dpr);
+
+
+        const padding = {
+
+            left: 45,
+
+            right: 15,
+
+            top: 20,
+
+            bottom: 35
+
+        };
+
+
+        const chartWidth =
+            width -
+            padding.left -
+            padding.right;
+
+        const chartHeight =
+            height -
+            padding.top -
+            padding.bottom;
+
+
+        const max =
+            Math.max(...this.values);
+
+        const min =
+            Math.min(...this.values);
+
+        const range =
+            max - min || 1;
+
+
+        /* Grid */
+
+        ctx.strokeStyle =
+            "#eeeeee";
+
+        ctx.lineWidth = 1;
+
+
+        for (let i = 0; i <= 4; i++) {
+
+            const y =
+                padding.top +
+                chartHeight * i / 4;
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                padding.left,
+                y
+            );
+
+            ctx.lineTo(
+                width - padding.right,
+                y
+            );
+
+            ctx.stroke();
+
+        }
+
+
+        /* Labels */
+
+        ctx.fillStyle = "#999";
+
+        ctx.font = "10px -apple-system";
+
+        this.labels.forEach(
+            (label, index) => {
+
+                const x =
+                    padding.left +
+                    chartWidth *
+                    index /
+                    Math.max(1, this.labels.length - 1);
+
+
+                ctx.fillText(
+                    label,
+                    x - 18,
+                    height - 10
+                );
+
+            }
+        );
+
+
+        /* Line */
+
+        ctx.beginPath();
+
+        this.values.forEach(
+            (value, index) => {
+
+                const x =
+                    padding.left +
+                    chartWidth *
+                    index /
+                    Math.max(1, this.values.length - 1);
+
+
+                const y =
+                    padding.top +
+                    chartHeight -
+                    ((value - min) / range) *
+                    chartHeight;
+
+
+                if (index === 0) {
+
+                    ctx.moveTo(x, y);
+
+                } else {
+
+                    ctx.lineTo(x, y);
+
+                }
+
+            }
+        );
+
+
+        ctx.strokeStyle = "#111";
+
+        ctx.lineWidth = 2.5;
+
+        ctx.stroke();
+
+
+        /* Points */
+
+        this.values.forEach(
+            (value, index) => {
+
+                const x =
+                    padding.left +
+                    chartWidth *
+                    index /
+                    Math.max(1, this.values.length - 1);
+
+
+                const y =
+                    padding.top +
+                    chartHeight -
+                    ((value - min) / range) *
+                    chartHeight;
+
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    x,
+                    y,
+                    4,
+                    0,
+                    Math.PI * 2
+                );
+
+                ctx.fillStyle = "#111";
+
+                ctx.fill();
+
+            }
+        );
+
+
+        /* Current value */
+
+        const last =
+            this.values[this.values.length - 1];
+
+
+        ctx.fillStyle = "#555";
+
+        ctx.font =
+            "bold 11px -apple-system";
+
+
+        ctx.fillText(
+            "¥" + formatMoney(last),
+            padding.left,
+            12
+        );
+
+    }
+
+
+    destroy() {}
+
+}
+
+
+/* =====================================================
+   Simple Pie Chart
+===================================================== */
+
+class SimplePieChart {
+
+    constructor(ctx, labels, values) {
+
+        this.ctx = ctx;
+
+        this.labels = labels;
+
+        this.values = values;
+
+        this.draw();
+
+    }
+
+
+    draw() {
+
+        const canvas =
+            this.ctx.canvas;
+
+        const dpr =
+            window.devicePixelRatio || 1;
+
+        const width =
+            canvas.parentElement.clientWidth - 36;
+
+        const height = 270;
+
+
+        canvas.width =
+            width * dpr;
+
+        canvas.height =
+            height * dpr;
+
+        canvas.style.width =
+            width + "px";
+
+        canvas.style.height =
+            height + "px";
+
+
+        const ctx = this.ctx;
+
+        ctx.scale(dpr, dpr);
+
+
+        const total =
+            this.values.reduce(
+                (a, b) => a + b,
+                0
+            );
+
+
+        const centerX =
+            width * .32;
+
+        const centerY =
+            height / 2;
+
+        const radius =
+            Math.min(
+                width * .25,
+                90
+            );
+
+
+        let angle = -Math.PI / 2;
+
+
+        this.values.forEach(
+            (value, index) => {
+
+                const slice =
+                    value / total *
+                    Math.PI * 2;
+
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    centerX,
+                    centerY
+                );
+
+                ctx.arc(
+                    centerX,
+                    centerY,
+                    radius,
+                    angle,
+                    angle + slice
+                );
+
+                ctx.closePath();
+
+
+                /*
+                 * 不固定颜色，
+                 * 使用浏览器默认灰阶
+                 */
+
+                const gray =
+                    50 + index * 30;
+
+                ctx.fillStyle =
+                    `hsl(0, 0%, ${Math.min(gray, 90)}%)`;
+
+                ctx.fill();
+
+
+                angle += slice;
+
+            }
+        );
+
+
+        /* Legend */
+
+        this.labels.forEach(
+            (label, index) => {
+
+                const y =
+                    35 + index * 30;
+
+
+                const percentage =
+                    this.values[index] /
+                    total * 100;
+
+
+                const gray =
+                    50 + index * 30;
+
+
+                ctx.fillStyle =
+                    `hsl(0, 0%, ${Math.min(gray, 90)}%)`;
+
+                ctx.fillRect(
+                    width * .58,
+                    y - 9,
+                    12,
+                    12
+                );
+
+
+                ctx.fillStyle = "#333";
+
+                ctx.font =
+                    "12px -apple-system";
+
+
+                ctx.fillText(
+                    label,
+                    width * .58 + 20,
+                    y
+                );
+
+
+                ctx.fillStyle = "#999";
+
+                ctx.fillText(
+                    percentage.toFixed(1) + "%",
+                    width * .58 + 20,
+                    y + 15
+                );
+
+            }
+        );
+
+    }
+
+
+    destroy() {}
+
+}
+
+
+/* =====================================================
+   Export JSON
+===================================================== */
+
+function exportData() {
+
+    saveData();
+
+
+    const exportObject = {
+
+        version: 1,
+
+        exportedAt:
+            nowISO(),
+
+        data
+
+    };
+
+
+    const json =
+        JSON.stringify(
+            exportObject,
+            null,
+            2
+        );
+
+
+    const blob =
+        new Blob(
+            [json],
+            {
+                type: "application/json"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(blob);
+
+
+    const a =
+        document.createElement("a");
+
+
+    const date =
+        new Date()
+            .toISOString()
+            .substring(0, 10);
+
+
+    a.href = url;
+
+    a.download =
+        `asset-backup-${date}.json`;
+
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+    URL.revokeObjectURL(url);
+
+
+    showToast("JSON 已导出");
+
+}
+
+
+/* =====================================================
+   Import JSON
+===================================================== */
+
+function importData(event) {
+
+    const file =
+        event.target.files[0];
+
+    if (!file) return;
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(e) {
+
+            try {
+
+                const parsed =
+                    JSON.parse(
+                        e.target.result
+                    );
+
+
+                const imported =
+                    parsed.data || parsed;
+
+
+                if (
+                    !imported.assets ||
+                    !imported.operations
+                ) {
+
+                    throw new Error(
+                        "Invalid data"
+                    );
+
+                }
+
+
+                const confirmed =
+                    confirm(
+                        "导入后会覆盖当前所有资产数据，确定继续吗？"
+                    );
+
+
+                if (!confirmed) {
+
+                    event.target.value = "";
+
+                    return;
+
+                }
+
+
+                data = {
+
+                    assets:
+                        imported.assets || [],
+
+                    operations:
+                        imported.operations || [],
+
+                    netWorthHistory:
+                        imported.netWorthHistory || []
+
+                };
+
+
+                saveData();
+
+                renderAssets();
+
+                renderDataStats();
+
+                showToast("数据导入成功");
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "JSON 文件格式错误，无法导入。"
+                );
+
+            }
+
+
+            event.target.value = "";
+
+        };
+
+
+    reader.readAsText(file);
+
+}
+
+
+/* =====================================================
+   Data Stats
+===================================================== */
+
+function renderDataStats() {
+
+    const stats =
+        document.getElementById("dataStats");
+
+
+    stats.innerHTML = `
+
+        当前资产：
+        <strong>
+            ${data.assets.length}
+        </strong>
+        项<br>
+
+        历史余额记录：
+        <strong>
+            ${
+                data.assets.reduce(
+                    (sum, asset) =>
+                        sum + asset.history.length,
+                    0
+                )
+            }
+        </strong>
+        条<br>
+
+        净资产历史：
+        <strong>
+            ${data.netWorthHistory.length}
+        </strong>
+        条<br>
+
+        操作记录：
+        <strong>
+            ${data.operations.length}
+        </strong>
+        条<br><br>
+
+        所有数据均保存在当前浏览器的
+        <strong>localStorage</strong>
+        中。
+
+    `;
+
+}
+
+
+/* =====================================================
+   Initialize
+===================================================== */
+
+function init() {
+
+    cleanupOldHistory();
+
+    saveData();
+
+    renderAssets();
+
+    renderDataStats();
+
+}
+
+
+init();
+
+
+/* =====================================================
+   Click outside modal
+===================================================== */
+
+document.getElementById("assetModal")
+    .addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target === this
+            ) {
+
+                closeModal();
+
+            }
+
+        }
+    );
+
+
+document.getElementById("historyModal")
+    .addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target === this
+            ) {
+
+                closeHistory();
+
+            }
+
+        }
+    );
+
+
+/* =====================================================
+   History Access
+===================================================== */
+
+/*
+ * 长按 / 双击资产卡可以查看历史
+ */
+
+document
+    .getElementById("assetList")
+    .addEventListener(
+        "dblclick",
+        function(event) {
+
+            const card =
+                event.target.closest(".asset-card");
+
+            if (!card) return;
+
+
+            const cards =
+                [...document.querySelectorAll(
+                    ".asset-card"
+                )];
+
+
+            const index =
+                cards.indexOf(card);
+
+
+            if (
+                data.assets[index]
+            ) {
+
+                openHistory(
+                    data.assets[index].id
+                );
+
+            }
+
+        }
+    );
+
+
+</script>
+
+</body>
+</html>
